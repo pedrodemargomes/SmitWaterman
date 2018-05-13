@@ -7,11 +7,46 @@
 #define MISS -3
 #define PENALTY -2
 
-#define MAX 100
+#define MAX 20000
 #define MAX_MATRIX MAX+1
 
 char seq1[MAX],seq2[MAX];
 int M[MAX_MATRIX][MAX_MATRIX];
+
+char respSeq1[MAX];
+char respSeq2[MAX];
+
+
+inline int max(int a,int b) {
+	if(a > b)
+		return a;
+	return b;
+}
+
+inline int min(int a,int b) {
+	if(a > b)
+		return b;
+	return a;
+}
+
+int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
+	if( i < numSeq1+1 && i < numSeq2+1 )
+		return i;
+	else if(i < max(numSeq1+1,numSeq2+1) )
+		return min(numSeq1,numSeq2);
+	else  
+		return 2*min(numSeq1+1,numSeq2+1) - i + abs(numSeq1+1 -(numSeq2+1) ) - 2;
+}
+
+void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
+	if (i < numSeq1+1) {
+		*pi = i;
+ 		*pj = 1;
+	} else {
+		*pi = (numSeq1+1) - 1;
+		*pj = i -(numSeq1+1) + 2;
+	}
+}
 
 int main() {
 	
@@ -24,11 +59,6 @@ int main() {
 	scanf("%d %d",&numSeq1,&numSeq2);
 	scanf("%s",seq1);
 	scanf("%s",seq2);
-	/*numSeq1 = 9;
-	numSeq2 = 8;
-	char *seq1 = "GGTTGACTA";
-	char *seq2 = "TGTTACGG";*/
-
 
 	M[0][0] = 0;
 	for(i=0;i<numSeq1+1;i++) {
@@ -37,75 +67,43 @@ int main() {
 		}
 	}
 	
-	/*
-	for(i=1;i<numSeq1+1;i++) {
-		for(j=1;j<numSeq2+1;j++) {
-			if(seq1[i-1] == seq2[j-1])
-				M[i][j] = M[i-1][j-1] + MATCH;
+	int pi,pj; // Primeiros i e j da diagonal
+	int ki,kj;
+	int numDiagonais = numSeq1+numSeq2-1; // Numero de diagonais a percorrer
+	int numElementos; // Numero de elementos na diagonal
+	#pragma omp parallel private(i,numElementos,pi,pj,ki,kj)
+	for(i =1; i <= numDiagonais; i++) {
+		numElementos = numElementosDiagonal(i,numSeq1,numSeq2);
+		calcPrimElemDiagonal(i,&pi,&pj,numSeq1);
+		
+		#pragma omp for
+		for(j = 1;j <= numElementos; j++) {
+			
+			ki = pi - j +1;
+			kj = pj + j -1;
+
+			//printf("ki = %d kj = %d\n",ki,kj);
+			if(seq1[ki-1] == seq2[kj-1])
+				M[ki][kj] = M[ki-1][kj-1] + MATCH;
 			else
-				M[i][j] = M[i-1][j-1] + MISS;
-			if(M[i][j] < M[i-1][j] + PENALTY )
-				M[i][j] = M[i-1][j] + PENALTY;
-			if(M[i][j] < M[i][j-1] + PENALTY )
-				M[i][j] = M[i][j-1] + PENALTY;
-			if(M[i][j] < 0)
-				M[i][j] = 0;
-			if(maior < M[i][j]) {
-				maior = M[i][j];
-				maiorI=i;maiorJ=j;
+				M[ki][kj] = M[ki-1][kj-1] + MISS;
+			if(M[ki][kj] < M[ki-1][kj] + PENALTY )
+				M[ki][kj] = M[ki-1][kj] + PENALTY;
+			if(M[ki][kj] < M[ki][kj-1] + PENALTY )
+				M[ki][kj] = M[ki][kj-1] + PENALTY;
+			if(M[ki][kj] < 0)
+				M[ki][kj] = 0;
+			if(maior < M[ki][kj]) {
+				#pragma omp critical
+				{
+				maior = M[ki][kj];
+				maiorI=ki;maiorJ=kj;
+				}
 			}
+		
 		}
+		
 	}
-	*/
-	int k;
-	#pragma omp parallel 
-	{
-
-	#pragma omp for
-	for(k = 1;k < numSeq1+1;k++) {
-		for(i = k, j = 1;i> 0 && j < numSeq2+1;i--,j++) {
-			//printf("i = %d j = %d\n",i,j);
-			if(seq1[i-1] == seq2[j-1])
-				M[i][j] = M[i-1][j-1] + MATCH;
-			else
-				M[i][j] = M[i-1][j-1] + MISS;
-			if(M[i][j] < M[i-1][j] + PENALTY )
-				M[i][j] = M[i-1][j] + PENALTY;
-			if(M[i][j] < M[i][j-1] + PENALTY )
-				M[i][j] = M[i][j-1] + PENALTY;
-			if(M[i][j] < 0)
-				M[i][j] = 0;
-			if(maior < M[i][j]) {
-				maior = M[i][j];
-				maiorI=i;maiorJ=j;
-			}
-		}
-	}
-
-	#pragma omp for
-	for(k=2; k < numSeq2+1; k++) {
-		for(j=k,i=numSeq1;j< numSeq2+1 && i > 0;j++,i--) {
-			//printf("i = %d j = %d\n",i,j);
-			if(seq1[i-1] == seq2[j-1])
-				M[i][j] = M[i-1][j-1] + MATCH;
-			else
-				M[i][j] = M[i-1][j-1] + MISS;
-			if(M[i][j] < M[i-1][j] + PENALTY )
-				M[i][j] = M[i-1][j] + PENALTY;
-			if(M[i][j] < M[i][j-1] + PENALTY )
-				M[i][j] = M[i][j-1] + PENALTY;
-			if(M[i][j] < 0)
-				M[i][j] = 0;
-			if(maior < M[i][j]) {
-				maior = M[i][j];
-				maiorI=i;maiorJ=j;
-			}
-
-		}
-	}
-
-	}
-	
 
 	#ifdef DEBUG
 	for(i=0;i<numSeq1+1;i++) {
@@ -120,8 +118,6 @@ int main() {
 	printf("i: %d j: %d maior: %d\n", maiorI,maiorJ,maior);
 	#endif
 	
-	char respSeq1[MAX];
-	char respSeq2[MAX];
 
 	int count = 0;
 	i = maiorI; j = maiorJ;

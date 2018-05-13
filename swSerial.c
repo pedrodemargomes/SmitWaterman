@@ -6,11 +6,14 @@
 #define MISS -3
 #define PENALTY -2
 
-#define MAX 100
+#define MAX 40000
 #define MAX_MATRIX MAX+1
 
 char seq1[MAX],seq2[MAX];
 int M[MAX_MATRIX][MAX_MATRIX];
+
+char respSeq1[MAX];
+char respSeq2[MAX];
 
 int main() {
 	
@@ -68,8 +71,6 @@ int main() {
 	printf("i: %d j: %d maior: %d\n", maiorI,maiorJ,maior);
 	#endif
 	
-	char respSeq1[MAX];
-	char respSeq2[MAX];
 
 	int count = 0;
 	i = maiorI; j = maiorJ;
