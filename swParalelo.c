@@ -68,7 +68,7 @@ int main() {
 	}
 
 
-	int s_block = 2;
+	int s_block = 100;
 	int bi,bj; // i e d do bloco
 
 	int pi,pj; // Primeiros i e j da diagonal
@@ -80,15 +80,16 @@ int main() {
 		numElementos = numElementosDiagonal(i,numSeq1/s_block,numSeq2/s_block);
 		calcPrimElemDiagonal(i,&pi,&pj,numSeq1/s_block);
 		
+		#pragma omp parallel for private(ki,kj,bi,bj)
 		for(j = 1;j <= numElementos; j++) {
 			
 			ki = pi - j +1;
 			kj = pj + j -1;
 
-			printf("ki = %d kj = %d\n",ki,kj);
+			//printf("ki = %d kj = %d\n",(ki-1)*s_block+1,(kj-1)*s_block+1 );
 			// BLOCO
-			for(bi=pi; bi < pi+s_block; bi++) {
-				for(bj=pj;bj < pj+s_block; bj++) {
+			for(bi=(ki-1)*s_block+1; bi < (ki-1)*s_block+1+s_block; bi++) {
+				for(bj=(kj-1)*s_block+1;bj < (kj-1)*s_block+1+s_block; bj++) {
 					//printf("bi = %d bj = %d\n",bi,bj);
 					if(seq1[bi-1] == seq2[bj-1])
 						M[bi][bj] = M[bi-1][bj-1] + MATCH;
