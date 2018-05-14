@@ -11,11 +11,19 @@
 #define MAX 20000
 #define MAX_MATRIX MAX+1
 
+struct Maior { 
+	int val; 
+	int i;
+	int j;
+};    
+#pragma omp declare reduction(maximum : struct Maior : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
+
+int numSeq1,numSeq2;
 char seq1[MAX],seq2[MAX];
 int *M; //[MAX_MATRIX][MAX_MATRIX];
 
 int numProcs;
-int maiorI,maiorJ,maior;
+struct Maior maior;
 
 char respSeq1[MAX];
 char respSeq2[MAX];
@@ -54,8 +62,25 @@ inline void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
 	}
 }
 
-void score(){
+inline void score(int bi, int bj){
+	if(seq1[bi-1] == seq2[bj-1])
+		M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
+	else
+		M[bi*(numSeq2+1) + bj] = M[(bi-1)*(numSeq2+1) + bj-1] + MISS;
+	if(M[bi*(numSeq2+1)+ bj] < M[(bi-1)*(numSeq2+1) + bj] + PENALTY )
+		M[bi*(numSeq2+1)+ bj] = M[(bi-1)*(numSeq2+1) + bj] + PENALTY;
+	if(M[bi*(numSeq2+1)+ bj] < M[bi*(numSeq2+1)+ bj-1] + PENALTY )
+		M[bi*(numSeq2+1)+ bj] = M[bi*(numSeq2+1)+ bj-1] + PENALTY;
+	if(M[bi*(numSeq2+1)+ bj] < 0)
+		M[bi*(numSeq2+1)+ bj] = 0;
 
+	if(maior.val < M[bi*(numSeq2+1)+bj]) {
+		#pragma omp critical
+		{
+		maior.val = M[bi*(numSeq2+1)+bj];
+		maior.i=bi;maior.j=bj;
+		}
+	}
 }
 
 int main() {
@@ -63,9 +88,8 @@ int main() {
 
 	int i,j;
 
-	maior = 0;
+	maior.val = 0;
 
-	int numSeq1,numSeq2;
 	lixo=scanf("%d %d",&numSeq1,&numSeq2);
 	lixo=scanf("%s",seq1);
 	lixo=scanf("%s",seq2);
@@ -84,7 +108,7 @@ int main() {
 		numElementos = numElementosDiagonal(i,numSeq1/s_block,numSeq2/s_block);
 		calcPrimElemDiagonal(i,&pi,&pj,numSeq1/s_block);
 		
-		#pragma omp parallel for private(ki,kj,bi,bj)
+		#pragma omp parallel for private(ki,kj,bi,bj) reduction(maximum:maior)
 		for(j = 1;j <= numElementos; j++) {
 			
 			ki = pi - j +1;
@@ -96,46 +120,12 @@ int main() {
 
 				for(bj=(kj-1)*s_block+1;bj < (kj-1)*s_block+1+s_block; bj++) {
 					//printf("bi = %d bj = %d\n",bi,bj);
-					if(seq1[bi-1] == seq2[bj-1])
-						M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
-					else
-						M[bi*(numSeq2+1) + bj] = M[(bi-1)*(numSeq2+1) + bj-1] + MISS;
-					if(M[bi*(numSeq2+1)+ bj] < M[(bi-1)*(numSeq2+1) + bj] + PENALTY )
-						M[bi*(numSeq2+1)+ bj] = M[(bi-1)*(numSeq2+1) + bj] + PENALTY;
-					if(M[bi*(numSeq2+1)+ bj] < M[bi*(numSeq2+1)+ bj-1] + PENALTY )
-						M[bi*(numSeq2+1)+ bj] = M[bi*(numSeq2+1)+ bj-1] + PENALTY;
-					if(M[bi*(numSeq2+1)+ bj] < 0)
-						M[bi*(numSeq2+1)+ bj] = 0;
-
-					if(maior < M[bi*(numSeq2+1)+bj]) {
-						#pragma omp critical
-						{
-						maior = M[bi*(numSeq2+1)+bj];
-						maiorI=bi;maiorJ=bj;
-						}
-					}
+					score(bi,bj);
 				} 
 				if((numSeq2-numSeq2%s_block<=bj) ) {
 					for(;bj<numSeq2+1;bj++) {
 						//printf("bi = %d bj = %d\n",bi,bj);
-						if(seq1[bi-1] == seq2[bj-1])
-							M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
-						else
-							M[bi*(numSeq2+1) + bj] = M[(bi-1)*(numSeq2+1) + bj-1] + MISS;
-						if(M[bi*(numSeq2+1)+ bj] < M[(bi-1)*(numSeq2+1) + bj] + PENALTY )
-							M[bi*(numSeq2+1)+ bj] = M[(bi-1)*(numSeq2+1) + bj] + PENALTY;
-						if(M[bi*(numSeq2+1)+ bj] < M[bi*(numSeq2+1)+ bj-1] + PENALTY )
-							M[bi*(numSeq2+1)+ bj] = M[bi*(numSeq2+1)+ bj-1] + PENALTY;
-						if(M[bi*(numSeq2+1)+ bj] < 0)
-							M[bi*(numSeq2+1)+ bj] = 0;
-
-						if(maior < M[bi*(numSeq2+1)+bj]) {
-							#pragma omp critical
-							{
-							maior = M[bi*(numSeq2+1)+bj];
-							maiorI=bi;maiorJ=bj;
-							}
-						}	
+						score(bi,bj);	
 					}
 					//printf("bi = %d bj = %d\n",bi,bj);
 				}
@@ -144,46 +134,12 @@ int main() {
 				for(;bi<numSeq1+1;bi++) {
 					for(bj=(kj-1)*s_block+1;bj < (kj-1)*s_block+1+s_block; bj++) {
 						//printf("bi = %d bj = %d\n",bi,bj);
-						if(seq1[bi-1] == seq2[bj-1])
-							M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
-						else
-							M[bi*(numSeq2+1) + bj] = M[(bi-1)*(numSeq2+1) + bj-1] + MISS;
-						if(M[bi*(numSeq2+1)+ bj] < M[(bi-1)*(numSeq2+1) + bj] + PENALTY )
-							M[bi*(numSeq2+1)+ bj] = M[(bi-1)*(numSeq2+1) + bj] + PENALTY;
-						if(M[bi*(numSeq2+1)+ bj] < M[bi*(numSeq2+1)+ bj-1] + PENALTY )
-							M[bi*(numSeq2+1)+ bj] = M[bi*(numSeq2+1)+ bj-1] + PENALTY;
-						if(M[bi*(numSeq2+1)+ bj] < 0)
-							M[bi*(numSeq2+1)+ bj] = 0;
-
-						if(maior < M[bi*(numSeq2+1)+bj]) {
-							#pragma omp critical
-							{
-							maior = M[bi*(numSeq2+1)+bj];
-							maiorI=bi;maiorJ=bj;
-							}
-						}
+						score(bi,bj);
 					} 
 					if((numSeq2-numSeq2%s_block<=bj) ) {
 						for(;bj<numSeq2+1;bj++) {
 							//printf("bi = %d bj = %d\n",bi,bj);
-							if(seq1[bi-1] == seq2[bj-1])
-								M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
-							else
-								M[bi*(numSeq2+1) + bj] = M[(bi-1)*(numSeq2+1) + bj-1] + MISS;
-							if(M[bi*(numSeq2+1)+ bj] < M[(bi-1)*(numSeq2+1) + bj] + PENALTY )
-								M[bi*(numSeq2+1)+ bj] = M[(bi-1)*(numSeq2+1) + bj] + PENALTY;
-							if(M[bi*(numSeq2+1)+ bj] < M[bi*(numSeq2+1)+ bj-1] + PENALTY )
-								M[bi*(numSeq2+1)+ bj] = M[bi*(numSeq2+1)+ bj-1] + PENALTY;
-							if(M[bi*(numSeq2+1)+ bj] < 0)
-								M[bi*(numSeq2+1)+ bj] = 0;
-
-							if(maior < M[bi*(numSeq2+1)+bj]) {
-								#pragma omp critical
-								{
-								maior = M[bi*(numSeq2+1)+bj];
-								maiorI=bi;maiorJ=bj;
-								}
-							}	
+							score(bi,bj);	
 						}
 						//printf("bi = %d bj = %d\n",bi,bj);
 					}
@@ -206,12 +162,12 @@ int main() {
 	#endif
 
 	#ifdef DEBUG
-	printf("i: %d j: %d maior: %d\n", maiorI,maiorJ,maior);
+	printf("i: %d j: %d maior: %d\n", maior.i,maior.j,maior.val);
 	#endif
 	
 
 	int count = 0;
-	i = maiorI; j = maiorJ;
+	i = maior.i; j = maior.j;
 	while(M[i*(numSeq2+1)+j] != 0) {
 		if( M[(i-1)*(numSeq2+1)+j-1] >= M[(i-1)*(numSeq2+1)+j] && M[(i-1)*(numSeq2+1)+j-1] >= M[i*(numSeq2+1)+j-1] ) {
 			respSeq1[count] = seq1[i-1];
