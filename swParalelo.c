@@ -19,14 +19,14 @@ struct Maior {
 #pragma omp declare reduction(maximum : struct Maior : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
 
 int numSeq1,numSeq2;
-char seq1[MAX],seq2[MAX];
-int *M; //[MAX_MATRIX][MAX_MATRIX];
+char *seq1,*seq2;
+long int *M; //[MAX_MATRIX][MAX_MATRIX];
 
 int numProcs;
 struct Maior maior;
 
-char respSeq1[MAX];
-char respSeq2[MAX];
+char *respSeq1;
+char *respSeq2;
 
 int lixo;
 
@@ -75,11 +75,8 @@ inline void score(int bi, int bj){
 		M[bi*(numSeq2+1)+ bj] = 0;
 
 	if(maior.val < M[bi*(numSeq2+1)+bj]) {
-		#pragma omp critical
-		{
 		maior.val = M[bi*(numSeq2+1)+bj];
 		maior.i=bi;maior.j=bj;
-		}
 	}
 }
 
@@ -91,10 +88,17 @@ int main() {
 	maior.val = 0;
 
 	lixo=scanf("%d %d",&numSeq1,&numSeq2);
+	
+	seq1 = malloc(numSeq1*sizeof(char));
+	seq2 = malloc(numSeq2*sizeof(char));
+	respSeq1 = malloc(numSeq1*sizeof(char));
+	respSeq2 = malloc(numSeq2*sizeof(char));
+
 	lixo=scanf("%s",seq1);
 	lixo=scanf("%s",seq2);
 
-	M = (int*) calloc( (numSeq1+1) * (numSeq2+1), sizeof(int));
+	M = calloc( (numSeq1+1) * (numSeq2+1), sizeof(long int));
+
 
 	int s_block = ceil(numSeq2/numProcs);
 	int bi,bj; // i e d do bloco
@@ -155,7 +159,7 @@ int main() {
 	#ifdef DEBUG
 	for(i=0;i<numSeq1+1;i++) {
 		for(j=0;j<numSeq2+1;j++) {
-			printf("%d ",M[i*(numSeq2+1)+j]);
+			printf("%ld ",M[i*(numSeq2+1)+j]);
 		}
 		printf("\n");
 	}
