@@ -6,7 +6,7 @@
 #define MISS -3
 #define PENALTY -2
 
-#define MAX 40000
+#define MAX 20000
 #define MAX_MATRIX MAX+1
 
 char seq1[MAX],seq2[MAX];

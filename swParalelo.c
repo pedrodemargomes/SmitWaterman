@@ -29,7 +29,7 @@ inline int min(int a,int b) {
 	return a;
 }
 
-int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
+inline int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
 	if( i < numSeq1+1 && i < numSeq2+1 )
 		return i;
 	else if(i < max(numSeq1+1,numSeq2+1) )
@@ -38,7 +38,7 @@ int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
 		return 2*min(numSeq1+1,numSeq2+1) - i + abs(numSeq1+1 -(numSeq2+1) ) - 2;
 }
 
-void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
+inline void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
 	if (i < numSeq1+1) {
 		*pi = i;
  		*pj = 1;
@@ -66,40 +66,51 @@ int main() {
 			M[i][j] = 0;
 		}
 	}
-	
+
+
+	int s_block = 2;
+	int bi,bj; // i e d do bloco
+
 	int pi,pj; // Primeiros i e j da diagonal
 	int ki,kj;
-	int numDiagonais = numSeq1+numSeq2-1; // Numero de diagonais a percorrer
+	int numDiagonais = numSeq1/s_block+numSeq2/s_block-1; // Numero de diagonais a percorrer
 	int numElementos; // Numero de elementos na diagonal
-	#pragma omp parallel private(i,numElementos,pi,pj,ki,kj)
+
 	for(i =1; i <= numDiagonais; i++) {
-		numElementos = numElementosDiagonal(i,numSeq1,numSeq2);
-		calcPrimElemDiagonal(i,&pi,&pj,numSeq1);
+		numElementos = numElementosDiagonal(i,numSeq1/s_block,numSeq2/s_block);
+		calcPrimElemDiagonal(i,&pi,&pj,numSeq1/s_block);
 		
-		#pragma omp for
 		for(j = 1;j <= numElementos; j++) {
 			
 			ki = pi - j +1;
 			kj = pj + j -1;
 
-			//printf("ki = %d kj = %d\n",ki,kj);
-			if(seq1[ki-1] == seq2[kj-1])
-				M[ki][kj] = M[ki-1][kj-1] + MATCH;
-			else
-				M[ki][kj] = M[ki-1][kj-1] + MISS;
-			if(M[ki][kj] < M[ki-1][kj] + PENALTY )
-				M[ki][kj] = M[ki-1][kj] + PENALTY;
-			if(M[ki][kj] < M[ki][kj-1] + PENALTY )
-				M[ki][kj] = M[ki][kj-1] + PENALTY;
-			if(M[ki][kj] < 0)
-				M[ki][kj] = 0;
-			if(maior < M[ki][kj]) {
-				#pragma omp critical
-				{
-				maior = M[ki][kj];
-				maiorI=ki;maiorJ=kj;
+			printf("ki = %d kj = %d\n",ki,kj);
+			// BLOCO
+			for(bi=pi; bi < pi+s_block; bi++) {
+				for(bj=pj;bj < pj+s_block; bj++) {
+					//printf("bi = %d bj = %d\n",bi,bj);
+					if(seq1[bi-1] == seq2[bj-1])
+						M[bi][bj] = M[bi-1][bj-1] + MATCH;
+					else
+						M[bi][bj] = M[bi-1][bj-1] + MISS;
+					if(M[bi][bj] < M[bi-1][bj] + PENALTY )
+						M[bi][bj] = M[bi-1][bj] + PENALTY;
+					if(M[bi][bj] < M[bi][bj-1] + PENALTY )
+						M[bi][bj] = M[bi][bj-1] + PENALTY;
+					if(M[bi][bj] < 0)
+						M[bi][bj] = 0;
+					if(maior < M[bi][bj]) {
+						#pragma omp critical
+						{
+						maior = M[bi][bj];
+						maiorI=bi;maiorJ=bj;
+						}
+					}
 				}
 			}
+			// ++++++++++++==
+				
 		
 		}
 		
