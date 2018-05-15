@@ -5,6 +5,7 @@ int main (){
 	srand(time(NULL));
 	int x, y, r;
 	scanf("%d %d", &x, &y);
+	printf("%d %d\n",x ,y );
 	for (int i=0;i <x; i++){
 		r=rand()%4;
 		if (r==0){printf("T");}
@@ -20,6 +21,6 @@ int main (){
 		if (r==2){printf("C");}
 		if (r==3){printf("G");}
 	}
-	printf("\n");	
+	printf("");	
 	return 0;
 }
