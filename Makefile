@@ -1,5 +1,5 @@
-DEBUGFLAG= -DDEBUGMIN
-FLAGS=-O3 -Wall  -lm $(DEBUGFLAGS)
+DEBUGFLAGS= -DDEBUGMIN
+FLAGS=-O3 -Wall $(DEBUGFLAGS) -lm 
 PFLAGS= -fopenmp $(FLAGS)
 CXX=gcc
 
@@ -21,14 +21,14 @@ serial:
 	$(CXX) $(FLAGS) $(SERIAL).o -o $(SERIAL)
 
 clean:
-	$(RM) $(EXEC).o $(EXEC) $(SERIAL) entradaGen.txt saidaSerial.txt saidaParalela.txt
+	$(RM) *.o $(EXEC) $(SERIAL) entradaGen.txt saidaSerial.txt saidaParalela.txt
 
 gen:
 		$(CXX) $(FLAGS) $(GEN).c -o $(GEN)
 
 
 run_serial:
-	time ./$(SERIAL) < entrada.txt >saidaSerial.txt
+	time ./$(SERIAL) < entradaGen.txt >saidaSerial.txt
 
 run_paralelo:
 	time ./$(EXEC) < entrada.txt >saidaParalela.txt
