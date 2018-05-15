@@ -12,38 +12,35 @@
 #define MAX_MATRIX MAX+1
 
 struct Maior { 
-	int val; 
-	int i;
-	int j;
+	long int val; 
+	long int i;
+	long int j;
 };    
 #pragma omp declare reduction(maximum : struct Maior : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
 
-int numSeq1,numSeq2;
+long int numSeq1,numSeq2;
 char *seq1,*seq2;
 long int *M; //[MAX_MATRIX][MAX_MATRIX];
 
-int numProcs;
+long int numProcs;
 struct Maior maior;
 
 char *respSeq1;
 char *respSeq2;
 
-int lixo;
-
-
-inline int max(int a,int b) {
+inline long int max(long int a, long int b) {
 	if(a > b)
 		return a;
 	return b;
 }
 
-inline int min(int a,int b) {
+inline long int min(long int a, long int b) {
 	if(a > b)
 		return b;
 	return a;
 }
 
-inline int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
+inline long int numElementosDiagonal(long int i, long int numSeq1, long int numSeq2) {
 	if( i < numSeq1+1 && i < numSeq2+1 )
 		return i;
 	else if(i < max(numSeq1+1,numSeq2+1) )
@@ -52,7 +49,7 @@ inline int numElementosDiagonal(int i,int numSeq1, int numSeq2) {
 		return 2*min(numSeq1+1,numSeq2+1) - i + abs(numSeq1+1 -(numSeq2+1) ) - 2;
 }
 
-inline void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
+inline void calcPrimElemDiagonal(long int i,long int *pi,long int *pj,long int numSeq1) {
 	if (i < numSeq1+1) {
 		*pi = i;
  		*pj = 1;
@@ -62,7 +59,7 @@ inline void calcPrimElemDiagonal(int i,int *pi,int *pj,int numSeq1) {
 	}
 }
 
-inline void score(int bi, int bj){
+inline void score(long int bi, long int bj){
 	if(seq1[bi-1] == seq2[bj-1])
 		M[bi*(numSeq2+1)+bj] = M[(bi-1)*(numSeq2+1)+bj-1] + MATCH;
 	else
@@ -81,33 +78,33 @@ inline void score(int bi, int bj){
 }
 
 int main() {
-	numProcs= omp_get_num_procs();
+	numProcs= 20;//omp_get_num_procs();
 
-	int i,j;
+	long int i,j;
 
 	maior.val = 0;
 
-	lixo=scanf("%d %d",&numSeq1,&numSeq2);
+	scanf("%ld %ld",&numSeq1,&numSeq2);
 	
 	seq1 = malloc(numSeq1*sizeof(char));
 	seq2 = malloc(numSeq2*sizeof(char));
 	respSeq1 = malloc(numSeq1*sizeof(char));
 	respSeq2 = malloc(numSeq2*sizeof(char));
 
-	lixo=scanf("%s",seq1);
-	lixo=scanf("%s",seq2);
+	scanf("%s",seq1);
+	scanf("%s",seq2);
 
 	M = calloc( (numSeq1+1) * (numSeq2+1), sizeof(long int));
 
 
-	int s_block = ceil(numSeq2/numProcs);
-	int bi,bj; // i e d do bloco
+	long int s_block = ceil((double)numSeq2/numProcs);
+	long int bi,bj; // i e d do bloco
 
-	int pi,pj; // Primeiros i e j da diagonal
-	int ki,kj;
-	int numDiagonais = numSeq1/s_block+numSeq2/s_block-1; // Numero de diagonais a percorrer
-	int numElementos; // Numero de elementos na diagonal
-
+	long int pi,pj; // Primeiros i e j da diagonal
+	long int ki,kj;
+	long int numDiagonais = numSeq1/s_block+numSeq2/s_block-1; // Numero de diagonais a percorrer
+	long int numElementos; // Numero de elementos na diagonal
+	
 	for(i =1; i <= numDiagonais; i++) {
 		numElementos = numElementosDiagonal(i,numSeq1/s_block,numSeq2/s_block);
 		calcPrimElemDiagonal(i,&pi,&pj,numSeq1/s_block);
@@ -166,7 +163,7 @@ int main() {
 	#endif
 
 	#ifdef DEBUG
-	printf("i: %d j: %d maior: %d\n", maior.i,maior.j,maior.val);
+	printf("i: %ld j: %ld maior: %ld\n", maior.i,maior.j,maior.val);
 	#endif
 	
 

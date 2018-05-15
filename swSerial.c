@@ -18,12 +18,12 @@ char *respSeq2;
 int main() {
 	
 
-	int i,j;
-	int maiorI,maiorJ,maior;
+	long int i,j;
+	long int maiorI,maiorJ,maior;
 	maior = 0;
 
-	int numSeq1,numSeq2;
-	scanf("%d %d",&numSeq1,&numSeq2);
+	long int numSeq1,numSeq2;
+	scanf("%ld %ld",&numSeq1,&numSeq2);
 
 	seq1 = malloc(numSeq1*sizeof(char));
 	seq2 = malloc(numSeq2*sizeof(char));
@@ -77,11 +77,11 @@ int main() {
 	#endif
 
 	#ifdef DEBUG
-	printf("i: %d j: %d maior: %d\n", maiorI,maiorJ,maior);
+	printf("i: %ld j: %ld maior: %ld\n", maiorI,maiorJ,maior);
 	#endif
 	
 
-	int count = 0;
+	long int count = 0;
 	i = maiorI; j = maiorJ;
 	while(M[i*(numSeq2+1)+j] != 0) {
 		if( M[(i-1)*(numSeq2+1)+j-1] >= M[(i-1)*(numSeq2+1)+j] && M[(i-1)*(numSeq2+1)+j-1] >= M[i*(numSeq2+1)+j-1] ) {
