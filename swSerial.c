@@ -15,6 +15,8 @@ int *M;
 char *respSeq1;
 char *respSeq2;
 
+int *direcI,*direcJ;
+
 int main() {
 	
 
@@ -34,6 +36,9 @@ int main() {
 	scanf("%s",seq2);
 
 	M = calloc( (numSeq1+1) * (numSeq2+1), sizeof(int));
+	
+	direcI = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
+	direcJ = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
 
 	/*numSeq1 = 9;
 	numSeq2 = 8;
@@ -44,14 +49,25 @@ int main() {
 	for(i=1;i<numSeq1+1;i++) {
 		for(j=1;j<numSeq2+1;j++) {
 			//printf("(%d,%d): %c %c\n",i,j,seq1[i-1], seq2[j-1] );
-			if(seq1[i-1] == seq2[j-1])
+			if(seq1[i-1] == seq2[j-1]) {
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j-1] + MATCH;
-			else 
+				direcI[i*(numSeq2+1)+j] = i-1;
+				direcJ[i*(numSeq2+1)+j] = j-1;
+			} else { 
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j-1] + MISS;
-			if(M[i*(numSeq2+1)+j] < M[(i-1)*(numSeq2+1)+j] + PENALTY )
+				direcI[i*(numSeq2+1)+j] = i-1;
+				direcJ[i*(numSeq2+1)+j] = j-1;
+			}
+			if(M[i*(numSeq2+1)+j] < M[(i-1)*(numSeq2+1)+j] + PENALTY ) {
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j] + PENALTY;
-			if(M[i*(numSeq2+1)+j] < M[i*(numSeq2+1)+j-1] + PENALTY )
+				direcI[i*(numSeq2+1)+j] = i-1;
+				direcJ[i*(numSeq2+1)+j] = j;
+			}
+			if(M[i*(numSeq2+1)+j] < M[i*(numSeq2+1)+j-1] + PENALTY ) {
 				M[i*(numSeq2+1)+j] = M[i*(numSeq2+1)+j-1] + PENALTY;
+				direcI[i*(numSeq2+1)+j] = i;
+				direcJ[i*(numSeq2+1)+j] = j-1;
+			}
 			if(M[i*(numSeq2+1)+j] < 0)
 				M[i*(numSeq2+1)+j] = 0;
 			if(maior < M[i*(numSeq2+1)+j]) {
@@ -78,14 +94,14 @@ int main() {
 	int count = 0;
 	i = maiorI; j = maiorJ;
 	while(M[i*(numSeq2+1)+j] != 0) {
-		if( M[(i-1)*(numSeq2+1)+j-1] > M[(i-1)*(numSeq2+1)+j] && M[(i-1)*(numSeq2+1)+j-1] >= M[i*(numSeq2+1)+j-1] ) {
+		if( direcI[i*(numSeq2+1)+j] == i-1 && direcJ[i*(numSeq2+1)+j] == j-1 ) {
 			respSeq1[count] = seq1[i-1];
 			respSeq2[count] = seq2[j-1];
 			i = i-1;j = j-1; // Diagonal
 			#ifdef DEBUG
 			printf("Diagonal\n");
 			#endif
-		} else if(M[(i-1)*(numSeq2+1)+j] >= M[(i-1)*(numSeq2+1)+j-1] && M[(i-1)*(numSeq2+1)+j] >= M[i*(numSeq2+1)+j-1] ) {
+		} else if( direcI[i*(numSeq2+1)+j] == i-1 && direcJ[i*(numSeq2+1)+j] == j ) {
 			respSeq1[count] = '-';
 			respSeq2[count] = seq1[i-1];
 			i = i-1; // Cima
