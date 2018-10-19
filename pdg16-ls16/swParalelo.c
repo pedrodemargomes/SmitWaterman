@@ -136,7 +136,7 @@ int main() {
 		numElementos = numElementosDiagonal(i,numSeq1/s_block,numSeq2/s_block);
 		calcPrimElemDiagonal(i,&pi,&pj,numSeq1/s_block);
 		
-		#pragma omp parallel for private(ki,kj,bi,bj) reduction(maximum:maior) schedule(dynamic) num_threads(8)
+		#pragma omp parallel for private(ki,kj,bi,bj) reduction(maximum:maior) //num_threads(8)
 		//ti = timestamp();
 		for(j = 1;j <= numElementos; j++) {
 			

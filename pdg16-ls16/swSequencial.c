@@ -37,8 +37,8 @@ int main() {
 
 	M = calloc( (numSeq1+1) * (numSeq2+1), sizeof(int));
 	
-	direcI = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
-	direcJ = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
+	//direcI = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
+	//direcJ = malloc( (numSeq1+1) * (numSeq2+1) * sizeof(int));
 
 	/*numSeq1 = 9;
 	numSeq2 = 8;
@@ -51,22 +51,22 @@ int main() {
 			//printf("(%d,%d): %c %c\n",i,j,seq1[i-1], seq2[j-1] );
 			if(seq1[i-1] == seq2[j-1]) {
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j-1] + MATCH;
-				direcI[i*(numSeq2+1)+j] = i-1;
-				direcJ[i*(numSeq2+1)+j] = j-1;
+				//direcI[i*(numSeq2+1)+j] = i-1;
+				//direcJ[i*(numSeq2+1)+j] = j-1;
 			} else { 
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j-1] + MISS;
-				direcI[i*(numSeq2+1)+j] = i-1;
-				direcJ[i*(numSeq2+1)+j] = j-1;
+				//direcI[i*(numSeq2+1)+j] = i-1;
+				//direcJ[i*(numSeq2+1)+j] = j-1;
 			}
 			if(M[i*(numSeq2+1)+j] < M[(i-1)*(numSeq2+1)+j] + PENALTY ) {
 				M[i*(numSeq2+1)+j] = M[(i-1)*(numSeq2+1)+j] + PENALTY;
-				direcI[i*(numSeq2+1)+j] = i-1;
-				direcJ[i*(numSeq2+1)+j] = j;
+				//direcI[i*(numSeq2+1)+j] = i-1;
+				//direcJ[i*(numSeq2+1)+j] = j;
 			}
 			if(M[i*(numSeq2+1)+j] < M[i*(numSeq2+1)+j-1] + PENALTY ) {
 				M[i*(numSeq2+1)+j] = M[i*(numSeq2+1)+j-1] + PENALTY;
-				direcI[i*(numSeq2+1)+j] = i;
-				direcJ[i*(numSeq2+1)+j] = j-1;
+				//direcI[i*(numSeq2+1)+j] = i;
+				//direcJ[i*(numSeq2+1)+j] = j-1;
 			}
 			if(M[i*(numSeq2+1)+j] < 0)
 				M[i*(numSeq2+1)+j] = 0;
@@ -91,7 +91,7 @@ int main() {
 	#endif
 	
 
-	int count = 0;
+	/*int count = 0;
 	i = maiorI; j = maiorJ;
 	while(M[i*(numSeq2+1)+j] != 0) {
 		if( direcI[i*(numSeq2+1)+j] == i-1 && direcJ[i*(numSeq2+1)+j] == j-1 ) {
@@ -117,16 +117,16 @@ int main() {
 			#endif
 		}
 		count++;
-	}
+	}*/
 
-	#ifdef DEBUGMIN
+	/*#ifdef DEBUGMIN
 	for(i=0;i<count;i++)
 		printf("%c",respSeq1[i]);
 	printf("\n");
 	for(i=0;i<count;i++)
 		printf("%c",respSeq2[i]);
 	printf("\n");
-	#endif
+	#endif*/
 	return 0;
 }
 
